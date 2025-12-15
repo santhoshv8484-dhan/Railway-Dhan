@@ -7,19 +7,20 @@ app = Flask(__name__)
 ACCESS_TOKEN = os.getenv("DHAN_ACCESS_TOKEN")
 CLIENT_ID = os.getenv("DHAN_CLIENT_ID")
 
-DHAN_ENDPOINT = "https://api-sandbox.dhan.co/orders"
+DHAN_ENDPOINT = "https://api-dhan-sandbox.paymatrix.in/orders"
 
 @app.route("/place", methods=["POST"])
 def place_order():
     if not ACCESS_TOKEN:
-        return jsonify({"error": "DHAN_ACCESS_TOKEN missing"}), 500
+        return jsonify({"error": "Missing DHAN_ACCESS_TOKEN"}), 500
+
     if not CLIENT_ID:
-        return jsonify({"error": "DHAN_CLIENT_ID missing"}), 500
+        return jsonify({"error": "Missing DHAN_CLIENT_ID"}), 500
 
     try:
         payload = request.get_json(force=True)
     except Exception:
-        return jsonify({"error": "Invalid JSON payload"}), 400
+        return jsonify({"error": "Invalid JSON"}), 400
 
     headers = {
         "Content-Type": "application/json",
@@ -27,14 +28,13 @@ def place_order():
         "client-id": CLIENT_ID
     }
 
-    response = requests.post(DHAN_ENDPOINT, json=payload, headers=headers)
-
     try:
+        response = requests.post(DHAN_ENDPOINT, json=payload, headers=headers)
         return jsonify(response.json()), response.status_code
-    except Exception:
-        return response.text, response.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/", methods=["GET"])
 def home():
-    return "Dhan Proxy Running on Railway", 200
+    return "Dhan Sandbox Proxy Running", 200
